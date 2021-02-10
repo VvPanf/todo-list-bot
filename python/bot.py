@@ -2,12 +2,14 @@ import telebot
 import logging
 import sys
 import time
+import os
 from telebot import types
 from enum import Enum
 import python.repo as repo
 from python.text_templates import *
 
-bot = telebot.AsyncTeleBot('896659837:AAFx8LMpzFoSSOlOqMHMpvY1RlwAIh9yfz0')
+token = os.environ.get("BOT_TOKEN")
+bot = telebot.AsyncTeleBot(token)
 
 PAGE_SIZE = 5
 
