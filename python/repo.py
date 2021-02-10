@@ -5,7 +5,7 @@ from enum import Enum
 class STATES(Enum):
     S_START = 0
     S_ENTER_LIST_AND_ITEMS = 1
-    S_SHOW_LIST = 2
+    S_EDIT_LIST = 2
 
 
 class MYSQL:
@@ -22,12 +22,19 @@ def create_conn():
                       password=MYSQL.PASSWD, db=MYSQL.DB, charset=MYSQL.CHARSET)
 
 
-def find_user_id(user_id):
+def find_user_id(user):
     with create_conn() as con:
         with con.cursor() as cur:
-            cur.execute("select id from users where user_id=%s", user_id)
+            cur.execute("select id from users where user_id=%s", user)
             res = cur.fetchone()
-            return res[0]
+            return res[0] if res is not None else None
+
+
+def delete_user(user):
+    with create_conn() as con:
+        with con.cursor() as cur:
+            cur.execute("delete from users where user_id=%s", user)
+            con.commit()
 
 
 def get_list_name(list_id):
@@ -35,7 +42,7 @@ def get_list_name(list_id):
         with con.cursor() as cur:
             cur.execute("select name from lists where id=%s", list_id)
             res = cur.fetchone()
-            return res[0]
+            return res[0] if res is not None else None
 
 
 def get_lists(user_id):
@@ -51,7 +58,7 @@ def get_list_id(user_id, lists):
         with con.cursor() as cur:
             cur.execute("select id from lists where users_id=%s and name=%s", (user_id, lists))
             res = cur.fetchone()
-            return res[0]
+            return res[0] if res is not None else None
 
 
 def delete_list(list_id):
@@ -92,9 +99,7 @@ def add_item(list_id, item):
 
 
 def add_user_if_not_exists(user):
-    try:
-        find_user_id(user)
-    except:
+    if find_user_id(user) is None:
         add_user(user)
 
 
@@ -110,7 +115,7 @@ def get_state(user):
         with con.cursor() as cur:
             cur.execute("select state from users where user_id=%s", user)
             res = cur.fetchone()
-            return res[0]
+            return res[0] if res is not None else None
 
 
 def change_item_checked(item_id, checked):
