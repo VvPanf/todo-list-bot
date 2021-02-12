@@ -217,7 +217,7 @@ if 'HEROKU' in list(os.environ.keys()):
     @app.route('/')
     def webhook():
         bot.remove_webhook()
-        bot.set_webhook(url="https://min-gallows.herokuapp.com/" + API_TOKEN)  # этот url нужно заменить на url вашего Хероку приложения
+        bot.set_webhook(url="https://todo-list-bot-app.herokuapp.com/" + API_TOKEN)  # этот url нужно заменить на url вашего Хероку приложения
         return "?", 200
 
 else:
