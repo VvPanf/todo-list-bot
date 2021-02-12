@@ -204,7 +204,7 @@ def parse_list_header(header):
 
 repo.create_tebles()
 # Проверим, есть ли переменная окружения Хероку (как ее добавить смотрите ниже)
-if 'HEROKU' in list(os.environ.keys()):
+if 'IS_HEROKU' in list(os.environ.keys()):
     logger = telebot.logger
     telebot.logger.setLevel(logging.INFO)
     app = flask.Flask(__name__)
