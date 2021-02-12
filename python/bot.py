@@ -1,12 +1,13 @@
 import telebot
+import flask
 import os
+import logging
 from telebot import types
 from enum import Enum
 import python.sqlite_repo as repo
 from python.text_templates import *
 
-token = os.environ.get("BOT_TOKEN")
-bot = telebot.AsyncTeleBot(token)
+API_TOKEN = os.environ.get("BOT_TOKEN")
 
 PAGE_SIZE = 5
 
@@ -15,6 +16,10 @@ class MENU_ACTIONS(Enum):
     EDIT = "edit"
     NEXT = "next"
     PREV = "prev"
+
+
+bot = telebot.AsyncTeleBot(API_TOKEN)
+
 
 # Инициалицазия и подсказка
 @bot.message_handler(commands=['start', 'help'])
@@ -198,4 +203,23 @@ def parse_list_header(header):
 
 
 repo.create_tebles()
-bot.polling(none_stop=True)
+# Проверим, есть ли переменная окружения Хероку (как ее добавить смотрите ниже)
+if 'HEROKU' in list(os.environ.keys()):
+    logger = telebot.logger
+    telebot.logger.setLevel(logging.INFO)
+    app = flask.Flask(__name__)
+
+    @app.route('/' + API_TOKEN, methods=['POST'])
+    def getMessage():
+        bot.process_new_updates([telebot.types.Update.de_json(flask.request.stream.read().decode("utf-8"))])
+        return "!", 200
+
+    @app.route('/')
+    def webhook():
+        bot.remove_webhook()
+        bot.set_webhook(url="https://min-gallows.herokuapp.com/" + API_TOKEN)  # этот url нужно заменить на url вашего Хероку приложения
+        return "?", 200
+
+else:
+    bot.remove_webhook()
+    bot.polling(none_stop=True)
