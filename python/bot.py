@@ -1,11 +1,8 @@
 import telebot
-import logging
-import sys
-import time
 import os
 from telebot import types
 from enum import Enum
-import python.repo as repo
+import python.sqlite_repo as repo
 from python.text_templates import *
 
 token = os.environ.get("BOT_TOKEN")
@@ -199,10 +196,6 @@ def parse_list_header(header):
         count_page = int(list_header[1].split('/')[1])
     return lists, curr_page, count_page
 
-while True:
-    try:
-        bot.infinity_polling()
-    except:
-        print('bolt')
-        logging.error('error: {}'.format(sys.exc_info()[0]))
-        time.sleep(5)
+
+repo.create_tebles()
+bot.polling(none_stop=True)
