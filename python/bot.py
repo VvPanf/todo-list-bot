@@ -46,6 +46,7 @@ def handle_new_command(message):
 @bot.message_handler(func=lambda message: repo.get_state(message.chat.id) == repo.STATES.S_ENTER_LIST_AND_ITEMS.value,
                      content_types=['text'])
 def handle_enter_list_name(message):
+    bot.send_message(message.chat.id, "...")
     user = message.chat.id
     lines = message.text.split('\n')
     name = lines[0]
@@ -77,7 +78,7 @@ def handle_lists_command(message):
     bot.send_message(user, delete_list, reply_markup=keyboard)
 
 # Постановка галочки на элементе списка
-@bot.callback_query_handler(func=lambda call: call.data.startswith('item'), content_types=['text'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('item'))
 def callback_inline_item(call):
     if call.message:
         user = call.message.chat.id
@@ -95,7 +96,7 @@ def callback_inline_item(call):
         bot.edit_message_reply_markup(user, call.message.message_id, reply_markup=keyboard)
 
 # Вывод элементов списка при нажатии на нужный список
-@bot.callback_query_handler(func=lambda call: call.data.startswith('list'), content_types=['text'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('list'))
 def callback_inline_list(call):
     if call.message:
         user = call.message.chat.id
@@ -112,7 +113,7 @@ def callback_inline_list(call):
         bot.send_message(user, msg, reply_markup=keyboard)
 
 # Удаление выбранного списка
-@bot.callback_query_handler(func=lambda call: call.data.startswith('delete'), content_types=['text'])
+@bot.callback_query_handler(func=lambda call: call.data.startswith('delete'))
 def callback_inline_delete(call):
     if call.message:
         user = call.message.chat.id
