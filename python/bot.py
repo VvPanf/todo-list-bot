@@ -4,7 +4,7 @@ import os
 import logging
 from telebot import types
 from enum import Enum
-import python.sqlite_repo as repo
+import python.pg_repo as repo
 from python.text_templates import *
 
 API_TOKEN = os.environ.get("BOT_TOKEN")
@@ -46,7 +46,6 @@ def handle_new_command(message):
 @bot.message_handler(func=lambda message: repo.get_state(message.chat.id) == repo.STATES.S_ENTER_LIST_AND_ITEMS.value,
                      content_types=['text'])
 def handle_enter_list_name(message):
-    bot.send_message(message.chat.id, "...")
     user = message.chat.id
     lines = message.text.split('\n')
     name = lines[0]
@@ -203,7 +202,7 @@ def parse_list_header(header):
     return lists, curr_page, count_page
 
 
-repo.create_tebles()
+repo.create_tables()
 # Проверим, есть ли переменная окружения Хероку (как ее добавить смотрите ниже)
 if 'IS_HEROKU' in list(os.environ.keys()):
     logger = telebot.logger

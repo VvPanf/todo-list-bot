@@ -1,7 +1,7 @@
 import sqlite3 as sql
 from enum import Enum
 
-CREATE_QUERY_FILE = '../sql/create.sql'
+CREATE_QUERY_FILE = '../sql/sqlite/create.sql'
 
 
 class STATES(Enum):
