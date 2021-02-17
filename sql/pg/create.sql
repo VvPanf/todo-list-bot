@@ -1,4 +1,4 @@
-create table users if not exists (
+create table if not exists users (
 	id serial not null primary key,
     user_id integer not null,
     state integer not null,
@@ -7,7 +7,7 @@ create table users if not exists (
 
 create index if not exists users_id_index on users(id);
 
-create table lists if not exists (
+create table  if not exists lists (
 	id serial not null primary key,
     name varchar(255) not null,
     users_id integer not null,
@@ -16,7 +16,7 @@ create table lists if not exists (
 
 create index if not exists lists_id_index on lists(id);
 
-create table item if not exists (
+create table if not exists item (
 	id serial not null primary key,
     content varchar(255) not null,
     checked boolean not null,
