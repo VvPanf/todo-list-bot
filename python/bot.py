@@ -13,7 +13,6 @@ PAGE_SIZE = 5
 
 class MENU_ACTIONS(Enum):
     CLOSE = "close"
-    EDIT = "edit"
     NEXT = "next"
     PREV = "prev"
 
@@ -27,13 +26,6 @@ def handle_start_commands(message):
     user = message.chat.id
     repo.add_user_if_not_exists(user)
     bot.send_message(user, hello_message, parse_mode="Markdown")
-
-# Удаление данных пользователя
-@bot.message_handler(commands=['exit'])
-def handle_exit_command(message):
-    user = message.chat.id
-    repo.delete_user(user)
-    bot.send_message(user, user_data_deleted)
 
 # Создание нового списка
 @bot.message_handler(commands=['new'])
@@ -49,6 +41,9 @@ def handle_enter_list_name(message):
     user = message.chat.id
     lines = message.text.split('\n')
     name = lines[0]
+    if repo.get_list_id(repo.find_user_id(user), name) is not None:
+        bot.send_message(user, list_existed)
+        return
     items = lines[1:]
     repo.add_list(repo.find_user_id(user), name)
     list_id = repo.get_list_id(repo.find_user_id(user), name)
@@ -62,9 +57,13 @@ def handle_enter_list_name(message):
 def handle_lists_command(message):
     user = message.chat.id
     keyboard = types.InlineKeyboardMarkup()
-    for el in repo.get_lists(repo.find_user_id(user)):
+    lists = repo.get_lists(repo.find_user_id(user))
+    if len(lists) == 0:
+        bot.send_message(user, list_no_list)
+        return
+    for el in lists:
         keyboard.add(types.InlineKeyboardButton(text=el[1], callback_data='list=' + str(el[0])))
-    keyboard.add(types.InlineKeyboardButton(text=close_sign + ' Закрыть', callback_data=MENU_ACTIONS.CLOSE.value))
+    keyboard = get_menu_buttons(keyboard, False)
     bot.send_message(user, list_list, reply_markup=keyboard)
 
 # Вывод всех списков пользователя для удаления
@@ -74,6 +73,7 @@ def handle_lists_command(message):
     keyboard = types.InlineKeyboardMarkup()
     for el in repo.get_lists(repo.find_user_id(user)):
         keyboard.add(types.InlineKeyboardButton(text=el[1], callback_data='delete=' + str(el[0])))
+    keyboard = get_menu_buttons(keyboard, False)
     bot.send_message(user, delete_list, reply_markup=keyboard)
 
 # Постановка галочки на элементе списка
@@ -103,6 +103,9 @@ def callback_inline_list(call):
         name = repo.get_list_name(list_id)
         keyboard = types.InlineKeyboardMarkup(row_width=4)
         items = repo.get_items(list_id)
+        if len(items) == 0:
+            bot.send_message(user, list_is_empty)
+            return
         for item in items[:PAGE_SIZE]:
             keyboard.add(types.InlineKeyboardButton(text=set_item_text(bool(item[2]), item[1]),
                                                     callback_data=set_callback_item(item[0])))
@@ -124,13 +127,6 @@ def callback_inline_delete(call):
 # Закрытие сообщения со списком
 @bot.callback_query_handler(func=lambda call: call.data.startswith(MENU_ACTIONS.CLOSE.value))
 def callback_inline_close(call):
-    bot.delete_message(call.message.chat.id, call.message.message_id)
-
-# Редактирование списка
-@bot.callback_query_handler(func=lambda call: call.data.startswith(MENU_ACTIONS.EDIT.value))
-def callback_inline_close(call):
-    user = call.message.chat.id
-    repo.change_state(user, repo.STATES.S_EDIT_LIST.value)
     bot.delete_message(call.message.chat.id, call.message.message_id)
 
 # Предыдущая страница списка
@@ -158,13 +154,11 @@ def get_menu_buttons(keyboard, all_buttons = True):
     if all_buttons:
         return keyboard.row(
             types.InlineKeyboardButton(text=prev_sign, callback_data=MENU_ACTIONS.PREV.value),
-            types.InlineKeyboardButton(text=edit_sign, callback_data=MENU_ACTIONS.EDIT.value),
             types.InlineKeyboardButton(text=close_sign, callback_data=MENU_ACTIONS.CLOSE.value),
             types.InlineKeyboardButton(text=next_sign, callback_data=MENU_ACTIONS.NEXT.value))
     else:
         return keyboard.row(
-            types.InlineKeyboardButton(text=edit_sign, callback_data=MENU_ACTIONS.EDIT.value),
-            types.InlineKeyboardButton(text=close_sign, callback_data=MENU_ACTIONS.CLOSE.value))
+            types.InlineKeyboardButton(text=close_sign + 'Закрыть', callback_data=MENU_ACTIONS.CLOSE.value))
 
 
 def next_or_prev_button(call, i):
@@ -217,7 +211,7 @@ if 'IS_HEROKU' in list(os.environ.keys()):
     @app.route('/')
     def webhook():
         bot.remove_webhook()
-        bot.set_webhook(url="https://todo-list-bot-app.herokuapp.com/" + API_TOKEN)  # этот url нужно заменить на url вашего Хероку приложения
+        bot.set_webhook(url="https://todo-list-bot-app.herokuapp.com/" + API_TOKEN)
         return "?", 200
 
 else:

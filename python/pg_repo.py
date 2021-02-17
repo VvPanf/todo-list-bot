@@ -7,7 +7,6 @@ DATABASE_URL = os.environ['DATABASE_URL']
 class STATES(Enum):
     S_START = 0
     S_ENTER_LIST_AND_ITEMS = 1
-    S_EDIT_LIST = 2
 
 
 class MYSQL:
@@ -22,7 +21,7 @@ class MYSQL:
 def create_tables():
     with create_conn() as con:
         with con.cursor() as cur:
-            with open('../sql/pg/create.sql','r') as file:
+            with open('../sql/pg/create.sql', 'r') as file:
                 cur.execute(file.read())
 
 
@@ -56,7 +55,7 @@ def get_list_name(list_id):
 def get_lists(user_id):
     with create_conn() as con:
         with con.cursor() as cur:
-            cur.execute("select id, name from lists where users_id=%s", (user_id,))
+            cur.execute("select id, name from lists where users_id=%s order by id", (user_id,))
             res = cur.fetchall()
             return res
 
@@ -79,7 +78,7 @@ def delete_list(list_id):
 def get_items(list_id):
     with create_conn() as con:
         with con.cursor() as cur:
-            cur.execute("select id, content, checked from item where lists_id=%s", (list_id,))
+            cur.execute("select id, content, checked from item where lists_id=%s order by id", (list_id,))
             res = cur.fetchall()
             return res
 
